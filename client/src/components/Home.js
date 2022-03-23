@@ -199,10 +199,7 @@ const Home = ({ user, logout }) => {
       await logout(user.id);
     }
   };
-
-  useEffect(()=>{
-    console.log(conversations)
-  },[conversations])
+  
   return (
     <>
       <Button onClick={handleLogout}>Logout</Button>
