@@ -51,8 +51,6 @@ router.get("/", async (req, res, next) => {
     for (let i = 0; i < conversations.length; i++) {
       const convo = conversations[i];
       const convoJSON = convo.toJSON();
-
-      // console.log(convoJSON)
       
       // set a property "otherUser" so that frontend will have easier access
       if (convoJSON.user1) {

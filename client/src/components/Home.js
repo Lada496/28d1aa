@@ -28,12 +28,13 @@ const Home = ({ user, logout }) => {
   const addSearchedUsers = (users) => {
     const currentUsers = {};
 
+    const newState = [...conversations];
     // make table of current users so we can lookup faster
-    conversations.forEach((convo) => {
+    newState.forEach((convo) => {
       currentUsers[convo.otherUser.id] = true;
     });
 
-    const newState = [...conversations];
+    
     users.forEach((user) => {
       // only create a fake convo if we don't already have a convo with this user
       if (!currentUsers[user.id]) {
@@ -79,21 +80,21 @@ const Home = ({ user, logout }) => {
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
-      conversations.forEach((convo) => {
+      const newConversations = [...conversations]
+      newConversations.forEach((convo) => {
         if (convo.otherUser.id === recipientId) {
           convo.messages.push(message);
           convo.latestMessageText = message.text;
           convo.id = message.conversationId;
         }
       });
-      setConversations(conversations);
+      setConversations(newConversations);
     },
     [setConversations, conversations]
   );
 
   const addMessageToConversation = useCallback(
     (data) => {
-      console.log(data)
       // if sender isn't null, that means the message needs to be put in a brand new convo
       const { message, sender = null } = data;
       if (sender !== null) {
@@ -199,7 +200,7 @@ const Home = ({ user, logout }) => {
       await logout(user.id);
     }
   };
-  
+
   return (
     <>
       <Button onClick={handleLogout}>Logout</Button>
