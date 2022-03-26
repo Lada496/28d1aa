@@ -28,13 +28,12 @@ const Home = ({ user, logout }) => {
   const addSearchedUsers = (users) => {
     const currentUsers = {};
 
-    const newState = [...conversations];
     // make table of current users so we can lookup faster
-    newState.forEach((convo) => {
+    conversations.forEach((convo) => {
       currentUsers[convo.otherUser.id] = true;
     });
 
-    
+    const newState = [...conversations];
     users.forEach((user) => {
       // only create a fake convo if we don't already have a convo with this user
       if (!currentUsers[user.id]) {
