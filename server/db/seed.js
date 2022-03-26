@@ -78,6 +78,7 @@ async function seed() {
       conversationId: hualingConvo.id,
       senderId: hualing.id,
       text: "a test message",
+
     });
   }
 

@@ -21,7 +21,6 @@ router.get("/", async (req, res, next) => {
       attributes: ["id"],
       order: [[Message, "createdAt", "ASC"]],
       include: [
-        // { model: Message, order: ["createdAt", "DESC"] },
         { model: Message},
         {
           model: User,
@@ -72,7 +71,6 @@ router.get("/", async (req, res, next) => {
       convoJSON.latestMessageText = convoJSON.messages[0].text;
       conversations[i] = convoJSON;
     }
-
     res.json(conversations);
   } catch (error) {
     next(error);
