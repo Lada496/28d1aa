@@ -128,6 +128,46 @@ const Home = ({ user, logout }) => {
     setActiveConversation(username);
   };
 
+  const patchMessages = async(body)=>{
+    const {data} = await axios.patch('/api/messages', body)
+    return data
+  }
+
+  const updateMessages = (messages)=>{
+    socket.emit('update-messages', {
+      messages,
+    })
+  }
+
+  const readMessages = async (body) =>{
+    try{
+      const data = await patchMessages(body)
+      updateMessagesInConversations(data)
+      updateMessages(data)
+    }catch(error){
+      console.error(error)
+    }
+  }
+
+  const updateMessagesInConversations = useCallback((data)=>{
+    const { messages  } = data;
+    setConversations(prev=>prev.map(convo=>{
+      if(convo.id===messages[0].conversationId){
+        const convoCopy = { ...convo }
+        let messagesCopy = [...convo.messages]
+        const startIndex = messagesCopy.findIndex(message => message.id === messages[0].id)
+        for(let i = 0; i < messages.length; i++){
+          messagesCopy[startIndex + i] = messages[i] 
+        }
+        convoCopy.messages = messagesCopy
+        return convoCopy
+      }else{
+        return convo
+      }
+    }))
+      
+  },[setConversations])
+
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>
       prev.map((convo) => {
@@ -163,6 +203,7 @@ const Home = ({ user, logout }) => {
     socket.on('add-online-user', addOnlineUser);
     socket.on('remove-offline-user', removeOfflineUser);
     socket.on('new-message', addMessageToConversation);
+    socket.on('update-messages', updateMessagesInConversations);
 
     return () => {
       // before the component is destroyed
@@ -170,8 +211,9 @@ const Home = ({ user, logout }) => {
       socket.off('add-online-user', addOnlineUser);
       socket.off('remove-offline-user', removeOfflineUser);
       socket.off('new-message', addMessageToConversation);
+      socket.off('update-messages', updateMessagesInConversations);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
+  }, [updateMessagesInConversations, addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
 
   useEffect(() => {
     // when fetching, prevent redirect
@@ -223,6 +265,7 @@ const Home = ({ user, logout }) => {
           conversations={conversations}
           user={user}
           postMessage={postMessage}
+          readMessages={readMessages}
         />
       </Grid>
     </>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, {useEffect, useState} from "react";
 import { Box, Typography, Badge } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
@@ -24,13 +24,16 @@ const useStyles = makeStyles((theme) => ({
   }
 }));
 
-const ChatContent = ({ conversation }) => {
+const ChatContent = ({ conversation, userId }) => {
   const classes = useStyles();
-  console.log(conversation)
+  const [unreadsNumber, setUnreadsNumber] = useState(conversation.messages.filter(message=>message.isRead === false).length)
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
-  const unreadsNumber = conversation.messages.filter(message=>message.isRead === false).length
-  console.log(unreadsNumber)
+  
+  useEffect(()=>{
+    setUnreadsNumber(conversation.messages.filter(message=>(message.isRead === false) && (message.senderId !== userId)).length)
+  },[conversation, userId])
+  
 
   return (
     <Box className={classes.root}>

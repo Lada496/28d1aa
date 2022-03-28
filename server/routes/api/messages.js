@@ -46,24 +46,24 @@ router.post("/", async (req, res, next) => {
 
 router.patch("/",async (req, res, next)=>{
   try{
-
-    const { senderId, text, conversationId, createdAt } = req.body
+    let newMessages = []
+    const { messages } = req.body
     if (!req.user) {
       return res.sendStatus(401);
     }
+    for(const message of messages){
 
-    const message = await Message.findConversation(
-      senderId,
-      text,
-      conversationId,
-      createdAt
-    )
-    if (!message) {
-      return res.sendStatus(404);
-    }
+      const messageItem = await Message.findOne({where:{id: message.id}})
 
-    await message.update({isRead: true})
-    res.json({message})
+      if (!messageItem) {
+        return res.sendStatus(404);
+      }
+
+      await messageItem.update({isRead: true})
+      newMessages.push(messageItem)
+      }
+    
+    res.json({messages: newMessages})
   }catch (error) {
     next(error);
   }
