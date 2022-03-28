@@ -28,13 +28,12 @@ const Home = ({ user, logout }) => {
   const addSearchedUsers = (users) => {
     const currentUsers = {};
 
-    const newState = [...conversations];
     // make table of current users so we can lookup faster
-    newState.forEach((convo) => {
+    conversations.forEach((convo) => {
       currentUsers[convo.otherUser.id] = true;
     });
 
-    
+    const newState = [...conversations];
     users.forEach((user) => {
       // only create a fake convo if we don't already have a convo with this user
       if (!currentUsers[user.id]) {
@@ -80,17 +79,20 @@ const Home = ({ user, logout }) => {
 
   const addNewConvo = useCallback(
     (recipientId, message) => {
-      const newConversations = [...conversations]
-      newConversations.forEach((convo) => {
-        if (convo.otherUser.id === recipientId) {
-          convo.messages.push(message);
-          convo.latestMessageText = message.text;
-          convo.id = message.conversationId;
+      setConversations((prev)=>prev.map((convo)=>{
+        if(convo.otherUser.id === recipientId){
+          const convoCopy = { ...convo };
+          const messegesCopy = [...convo.messages]
+          convoCopy.messages = [...messegesCopy, message]
+          convoCopy.latestMessageText = message.text;
+          convoCopy.id = message.conversationId;
+          return convoCopy
+        }else{
+          return convo
         }
-      });
-      setConversations(newConversations);
+      }))
     },
-    [setConversations, conversations]
+    [setConversations]
   );
 
   const addMessageToConversation = useCallback(
@@ -107,16 +109,19 @@ const Home = ({ user, logout }) => {
         setConversations((prev) => [newConvo, ...prev]);
       }
 
-      const newConversations = conversations.slice()
-      newConversations.forEach((convo) => {
-        if (convo.id === message.conversationId) {
-          convo.messages.push(message);
-          convo.latestMessageText = message.text;
+      setConversations((prev)=>prev.map((convo)=>{
+        if(convo.id === message.conversationId){
+          const convoCopy = { ...convo };
+          const messegesCopy = [...convo.messages]
+          convoCopy.messages = [...messegesCopy, message]
+          convoCopy.latestMessageText = message.text
+          return convoCopy
+        }else{
+          return convo
         }
-      });
-      setConversations(newConversations);
+      }))
     },
-    [setConversations, conversations]
+    [setConversations]
   );
 
   const setActiveChat = (username) => {
