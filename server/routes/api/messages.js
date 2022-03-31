@@ -51,7 +51,7 @@ router.patch("/",async (req, res, next)=>{
     const { messages, conversationId } = req.body
     
     if (!req.user) {
-      return res.sendStatus(400);
+      return res.sendStatus(401);
     }
 
     const conversation = await User.findOne({where: conversationId})
