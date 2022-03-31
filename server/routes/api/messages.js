@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { Conversation, Message } = require("../../db/models");
+const { Conversation, Message, User } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
 // expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)
@@ -47,10 +47,21 @@ router.post("/", async (req, res, next) => {
 router.patch("/",async (req, res, next)=>{
   try{
     let newMessages = []
-    const { messages } = req.body
+    
+    const { messages, conversationId } = req.body
+    
     if (!req.user) {
+      return res.sendStatus(400);
+    }
+
+    const conversation = await User.findOne({where: conversationId})
+    const isUserMessageSender = messages.some(message=>message.senderId === req.user.id)
+    
+    if(!conversation || isUserMessageSender){
       return res.sendStatus(401);
     }
+
+
     for(const message of messages){
 
       const messageItem = await Message.findOne({where:{id: message.id}})
