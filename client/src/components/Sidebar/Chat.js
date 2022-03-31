@@ -25,6 +25,8 @@ const Chat = ({ conversation, setActiveChat, userId }) => {
     await setActiveChat(conversation.otherUser.username);
   };
 
+  const unreadsNumber = conversation.messages.filter(message=>(message.isRead === false) && (message.senderId !== userId)).length
+
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
       <BadgeAvatar
@@ -33,7 +35,7 @@ const Chat = ({ conversation, setActiveChat, userId }) => {
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} userId={userId} />
+      <ChatContent conversation={conversation} unreads={unreadsNumber} />
     </Box>
   );
 };
