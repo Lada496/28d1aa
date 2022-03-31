@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Box } from '@material-ui/core';
 import { SenderBubble, OtherUserBubble } from '.';
 import moment from 'moment';
@@ -11,8 +11,7 @@ const Messages = (props) => {
       const updateMessages = messages.filter(message=>(message.isRead === false) && (message.senderId !== userId))
       readMessages({messages: updateMessages, conversationId})
     }
-  },[conversationId,readMessages, userId])
-
+  },[conversationId,readMessages, userId, messages])
 
   return (
     <Box>
