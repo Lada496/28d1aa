@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const { Conversation, Message, User } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
+const { Op } = require("sequelize");
 
 // expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)
 router.post("/", async (req, res, next) => {
@@ -46,7 +47,7 @@ router.post("/", async (req, res, next) => {
 
 router.patch("/",async (req, res, next)=>{
   try{
-    let newMessages = []
+    // let newMessages = []
     
     const { messages, conversationId } = req.body
     
@@ -55,24 +56,25 @@ router.patch("/",async (req, res, next)=>{
     }
 
     const conversation = await User.findOne({where: conversationId})
-    const isUserMessageSender = messages.some(message=>message.senderId === req.user.id)
-    
+    const isUserMessageSender = messages.some(message=>message.senderId === req.user.id) 
     if(!conversation || isUserMessageSender){
       return res.sendStatus(401);
     }
 
-
-    for(const message of messages){
-
-      const messageItem = await Message.findOne({where:{id: message.id}})
-
-      if (!messageItem) {
-        return res.sendStatus(404);
+   await Message.update({isRead: true}, {
+    where: {
+      [Op.or]:{
+        id: [...messages.map(message=>message.id)]
       }
+   }} )
 
-      await messageItem.update({isRead: true})
-      newMessages.push(messageItem)
+  const newMessages = await Message.findAll({
+    where: {
+      [Op.or]:{
+        id: [...messages.map(message=>message.id)]
       }
+    }
+  })
     
     res.json({messages: newMessages})
   }catch (error) {
