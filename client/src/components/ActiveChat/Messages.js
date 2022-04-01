@@ -4,22 +4,25 @@ import { SenderBubble, OtherUserBubble } from '.';
 import moment from 'moment';
 
 const Messages = (props) => {
-  const { messages, otherUser, userId, readMessages, conversationId } = props; 
-
+  const { messages, otherUser, userId, readMessages, conversationId } = props;
+  const lastMessage = messages[messages.length - 1] 
+  const isMyLastMessageRead = lastMessage.isRead && lastMessage.senderId === userId
   useEffect(()=>{
     if(messages.some(message=> (message.isRead === false) && (message.senderId !== userId))){
+      console.log(otherUser)
       const updateMessages = messages.filter(message=>(message.isRead === false) && (message.senderId !== userId))
-      readMessages({messages: updateMessages, conversationId})
+      readMessages({messages: updateMessages, conversationId, otherUserId: otherUser.id})
     }
-  },[conversationId,readMessages, userId, messages])
+  },[conversationId,readMessages, userId, messages, otherUser])
 
   return (
     <Box>
-      {messages.map((message) => {
+      {messages.map((message, index) => {
         const time = moment(message.createdAt).format('h:mm');
+        const showAvatar = (messages.length - 1) === index && isMyLastMessageRead
 
         return message.senderId === userId ? (
-          <SenderBubble key={message.id} text={message.text} time={time} />
+          <SenderBubble key={message.id} text={message.text} time={time} showAvatar={showAvatar} otherUser={otherUser}/>
         ) : (
           <OtherUserBubble
             key={message.id}

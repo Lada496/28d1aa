@@ -55,6 +55,7 @@ const Home = ({ user, logout }) => {
   };
 
   const sendMessage = (data, body) => {
+    console.log('emit newmessage run')
     socket.emit('new-message', {
       message: data.message,
       recipientId: body.recipientId,
@@ -133,33 +134,37 @@ const Home = ({ user, logout }) => {
     return data
   }
 
-  const updateMessages = (messages)=>{
-    socket.emit('update-messages', {
-      messages,
-    })
+  const updateMessages = (data)=>{
+    console.log('emit updatemessages run')
+    console.log("updatemessages",data)
+    const { messages } = data;
+    socket.emit('update-messages', data)
   }
 
   const readMessages = async (body) =>{
     try{
-      const data = await patchMessages(body)
+      const data = await patchMessages({
+        messages: body.messages,
+        conversationId: body.conversationId
+      })
       updateMessagesInConversations(data)
-      updateMessages(data)
+      updateMessages({
+        messages: data.messages,
+        recipientId: body.otherUserId
+      })
     }catch(error){
       console.error(error)
     }
   }
 
   const updateMessagesInConversations = useCallback((data)=>{
-    const { messages  } = data;
+    const { messages } = data;
     setConversations(prev=>prev.map(convo=>{
       if(convo.id===messages[0].conversationId){
         const convoCopy = { ...convo }
-        let messagesCopy = [...convo.messages]
-        const startIndex = messagesCopy.findIndex(message => message.id === messages[0].id)
-        for(let i = 0; i < messages.length; i++){
-          messagesCopy[startIndex + i] = messages[i] 
-        }
-        convoCopy.messages = messagesCopy
+        const readMessages = convoCopy.messages.filter(message=>message.isRead)
+        const newMessages = [...readMessages, ...messages]
+        convoCopy.messages = newMessages
         return convoCopy
       }else{
         return convo
@@ -195,6 +200,10 @@ const Home = ({ user, logout }) => {
       })
     );
   }, []);
+
+  useEffect(()=>{
+    console.log(conversations)
+  },[conversations])
 
   // Lifecycle
 
