@@ -9,11 +9,10 @@ const Messages = (props) => {
   const isMyLastMessageRead = lastMessage.isRead && lastMessage.senderId === userId
   useEffect(()=>{
     if(messages.some(message=> (message.isRead === false) && (message.senderId !== userId))){
-      console.log(otherUser)
       const updateMessages = messages.filter(message=>(message.isRead === false) && (message.senderId !== userId))
-      readMessages({messages: updateMessages, conversationId, otherUserId: otherUser.id})
+      readMessages({messages: updateMessages, conversationId })
     }
-  },[conversationId,readMessages, userId, messages, otherUser])
+  },[conversationId,readMessages, userId, messages ])
 
   return (
     <Box>

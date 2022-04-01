@@ -55,7 +55,6 @@ const Home = ({ user, logout }) => {
   };
 
   const sendMessage = (data, body) => {
-    console.log('emit newmessage run')
     socket.emit('new-message', {
       message: data.message,
       recipientId: body.recipientId,
@@ -135,9 +134,6 @@ const Home = ({ user, logout }) => {
   }
 
   const updateMessages = (data)=>{
-    console.log('emit updatemessages run')
-    console.log("updatemessages",data)
-    const { messages } = data;
     socket.emit('update-messages', data)
   }
 
@@ -148,10 +144,7 @@ const Home = ({ user, logout }) => {
         conversationId: body.conversationId
       })
       updateMessagesInConversations(data)
-      updateMessages({
-        messages: data.messages,
-        recipientId: body.otherUserId
-      })
+      updateMessages(data)
     }catch(error){
       console.error(error)
     }
@@ -200,10 +193,6 @@ const Home = ({ user, logout }) => {
       })
     );
   }, []);
-
-  useEffect(()=>{
-    console.log(conversations)
-  },[conversations])
 
   // Lifecycle
 
