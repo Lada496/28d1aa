@@ -2,7 +2,7 @@ import React from "react";
 import { Box, Typography, Badge } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles((theme, isUnread) => ({
   root: {
     display: "flex",
     justifyContent: "space-between",
@@ -18,13 +18,19 @@ const useStyles = makeStyles((theme) => ({
     color: "#9CADC8",
     letterSpacing: -0.17,
   },
+  previewTextUnread: {
+    fontSize: 12,
+    color: 'black',
+    letterSpacing: -0.17,
+    fontWeight: 'bold'
+  },
   unreadBadge: {
     right: 20,
     top: 22,
   }
 }));
 
-const ChatContent = ({ conversation, unreads }) => {
+const ChatContent = ({ conversation, unreads, isUnread }) => {
   const classes = useStyles();
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
@@ -36,7 +42,7 @@ const ChatContent = ({ conversation, unreads }) => {
         <Typography className={classes.username}>
           {otherUser.username}
         </Typography>
-        <Typography className={classes.previewText}>
+        <Typography className={isUnread? classes.previewTextUnread :classes.previewText} >
           {latestMessageText}
         </Typography>
       </Box>
