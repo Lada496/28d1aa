@@ -55,7 +55,6 @@ const Home = ({ user, logout }) => {
   };
 
   const sendMessage = (data, body) => {
-    console.log(body, 'emit')
     socket.emit('new-message', {
       message: data.message,
       recipientId: body.recipientId,
@@ -102,7 +101,6 @@ const Home = ({ user, logout }) => {
 
   const addMessageToConversation = useCallback(
     (data) => {
-      console.log(data, 'add')
       // if sender isn't null, that means the message needs to be put in a brand new convo
       const { message, sender = null, recipientId } = data;
       if (sender !== null) {
