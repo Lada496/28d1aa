@@ -30,7 +30,7 @@ const useStyles = makeStyles((theme, isUnread) => ({
   }
 }));
 
-const ChatContent = ({ conversation, unreads, isUnread }) => {
+const ChatContent = ({ conversation }) => {
   const classes = useStyles();
   const { otherUser } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
@@ -42,11 +42,11 @@ const ChatContent = ({ conversation, unreads, isUnread }) => {
         <Typography className={classes.username}>
           {otherUser.username}
         </Typography>
-        <Typography className={isUnread? classes.previewTextUnread :classes.previewText} >
+        <Typography className={conversation.isUnread? classes.previewTextUnread :classes.previewText} >
           {latestMessageText}
         </Typography>
       </Box>
-      <Badge className={classes.unreadBadge} badgeContent={unreads} color="primary">
+      <Badge className={classes.unreadBadge} badgeContent={conversation.unreads} color="primary">
       </Badge>
     </Box>
   );

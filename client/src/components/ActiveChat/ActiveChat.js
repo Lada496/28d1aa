@@ -53,6 +53,7 @@ const ActiveChat = ({
                   messages={conversation.messages}
                   otherUser={conversation.otherUser}
                   userId={user.id}
+                  showAvatar={conversation.isMyLastMessageRead}
                   readMessages={readMessages}
                   conversationId={conversation.id || null}
                 />

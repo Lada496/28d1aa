@@ -43,12 +43,16 @@ io.on("connection", (socket) => {
   socket.on("new-message", (data) => {
     socket.broadcast.emit("new-message", {
       message: data.message,
+      recipientId: data.recipientId,
       sender: data.sender,
     });
   });
 
-  socket.on("update-messages", (newMessages)=>{
-    socket.broadcast.emit('update-messages', newMessages)
+  socket.on("update-messages", (data)=>{
+    socket.broadcast.emit('update-messages', {
+      messages: data.messages,
+      readerId: data.readerId
+    })
   })
 
   socket.on("logout", (id) => {

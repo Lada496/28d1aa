@@ -55,6 +55,7 @@ const Home = ({ user, logout }) => {
   };
 
   const sendMessage = (data, body) => {
+    console.log(body, 'emit')
     socket.emit('new-message', {
       message: data.message,
       recipientId: body.recipientId,
@@ -68,7 +69,11 @@ const Home = ({ user, logout }) => {
       if (!body.conversationId) {
         addNewConvo(body.recipientId, data.message);
       } else {
-        addMessageToConversation(data);
+        addMessageToConversation({
+          message: data.message,
+          recipientId: body.recipientId,
+          sender: data.sender,
+        });
       }
 
       sendMessage(data, body);
@@ -97,15 +102,26 @@ const Home = ({ user, logout }) => {
 
   const addMessageToConversation = useCallback(
     (data) => {
+      console.log(data, 'add')
       // if sender isn't null, that means the message needs to be put in a brand new convo
-      const { message, sender = null } = data;
+      const { message, sender = null, recipientId } = data;
       if (sender !== null) {
         const newConvo = {
           id: message.conversationId,
           otherUser: sender,
-          messages: [message],
+          messages: [],
         };
         newConvo.latestMessageText = message.text;
+        let unreads = 0;
+        let isUnread = false
+
+        if(sender.id !== user.id){
+          unreads++;
+          isUnread = true
+        }
+        newConvo.unreads = unreads;
+        newConvo.isMyLastMessageRead = false;
+        newConvo.isUnread = isUnread
         setConversations((prev) => [newConvo, ...prev]);
       }
 
@@ -115,13 +131,21 @@ const Home = ({ user, logout }) => {
           const messegesCopy = [...convo.messages]
           convoCopy.messages = [...messegesCopy, message]
           convoCopy.latestMessageText = message.text
+          if(recipientId == user.id){
+            convoCopy.unreads++
+            convoCopy.isUnread = true
+          }else{
+            convoCopy.isMyLastMessageRead = false;
+            convoCopy.isUnread = false
+          }
+          
           return convoCopy
         }else{
           return convo
         }
       }))
     },
-    [setConversations]
+    [setConversations, user]
   );
 
   const setActiveChat = (username) => {
@@ -143,28 +167,40 @@ const Home = ({ user, logout }) => {
         messages: body.messages,
         conversationId: body.conversationId
       })
-      updateMessagesInConversations(data)
-      updateMessages(data)
+      updateMessagesInConversations({
+        messages: data.messages,
+        readerId: body.readerId
+      })
+      updateMessages({
+        messages: data.messages,
+        readerId: body.readerId
+      })
     }catch(error){
       console.error(error)
     }
   }
 
   const updateMessagesInConversations = useCallback((data)=>{
-    const { messages } = data;
+    const { messages, readerId } = data;
     setConversations(prev=>prev.map(convo=>{
       if(convo.id===messages[0].conversationId){
         const convoCopy = { ...convo }
         const readMessages = convoCopy.messages.filter(message=>message.isRead)
         const newMessages = [...readMessages, ...messages]
         convoCopy.messages = newMessages
+        if(readerId === user.id){
+          convoCopy.unreads = 0
+          convoCopy.isUnread = false
+        }else{
+          convoCopy.isMyLastMessageRead = true
+        }
         return convoCopy
       }else{
         return convo
       }
     }))
       
-  },[setConversations])
+  },[setConversations, user])
 
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>

@@ -4,13 +4,12 @@ import { SenderBubble, OtherUserBubble } from '.';
 import moment from 'moment';
 
 const Messages = (props) => {
-  const { messages, otherUser, userId, readMessages, conversationId } = props;
-  const lastMessage = messages[messages.length - 1] 
-  const isMyLastMessageRead = lastMessage.isRead && lastMessage.senderId === userId
+  const { messages, otherUser, userId, readMessages, conversationId, showAvatar } = props;
+
   useEffect(()=>{
     if(messages.some(message=> (message.isRead === false) && (message.senderId !== userId))){
       const updateMessages = messages.filter(message=>(message.isRead === false) && (message.senderId !== userId))
-      readMessages({messages: updateMessages, conversationId })
+      readMessages({messages: updateMessages, conversationId, readerId: userId })
     }
   },[conversationId,readMessages, userId, messages ])
 
@@ -18,10 +17,15 @@ const Messages = (props) => {
     <Box>
       {messages.map((message, index) => {
         const time = moment(message.createdAt).format('h:mm');
-        const showAvatar = (messages.length - 1) === index && isMyLastMessageRead
-
+        let listMessageIndex = false;
+        if(messages.length !== 0){
+          if((messages.length - 1 )===index){
+            listMessageIndex = true
+          }
+        }
         return message.senderId === userId ? (
-          <SenderBubble key={message.id} text={message.text} time={time} showAvatar={showAvatar} otherUser={otherUser}/>
+          
+          <SenderBubble key={message.id} text={message.text} time={time} showAvatar={showAvatar && listMessageIndex} otherUser={otherUser}/>
         ) : (
           <OtherUserBubble
             key={message.id}

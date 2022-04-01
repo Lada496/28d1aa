@@ -25,9 +25,9 @@ const Chat = ({ conversation, setActiveChat, userId }) => {
     await setActiveChat(conversation.otherUser.username);
   };
 
-  const unreadsNumber = conversation.messages.filter(message=>(message.isRead === false) && (message.senderId !== userId)).length
-  const { messages } = conversation
-  const isUnread = !(messages[messages.length - 1].isRead || messages[messages.length - 1].senderId === userId)
+  // const unreadsNumber = conversation.messages?.filter(message=>(message?.isRead === false) && (message?.senderId !== userId)).length || null
+  // const { messages } = conversation
+  // const isUnread = !(messages[messages?.length - 1]?.isRead || messages[messages?.length - 1].senderId === userId) || null
 
   return (
     <Box onClick={() => handleClick(conversation)} className={classes.root}>
@@ -37,7 +37,7 @@ const Chat = ({ conversation, setActiveChat, userId }) => {
         online={otherUser.online}
         sidebar={true}
       />
-      <ChatContent conversation={conversation} unreads={unreadsNumber} isUnread={isUnread}/>
+      <ChatContent conversation={conversation} />
     </Box>
   );
 };
