@@ -68,7 +68,11 @@ const Home = ({ user, logout }) => {
       if (!body.conversationId) {
         addNewConvo(body.recipientId, data.message);
       } else {
-        addMessageToConversation(data);
+        addMessageToConversation({
+          message: data.message,
+          recipientId: body.recipientId,
+          sender: data.sender,
+        });
       }
 
       sendMessage(data, body);
@@ -98,14 +102,24 @@ const Home = ({ user, logout }) => {
   const addMessageToConversation = useCallback(
     (data) => {
       // if sender isn't null, that means the message needs to be put in a brand new convo
-      const { message, sender = null } = data;
+      const { message, sender = null, recipientId } = data;
       if (sender !== null) {
         const newConvo = {
           id: message.conversationId,
           otherUser: sender,
-          messages: [message],
+          messages: [],
         };
         newConvo.latestMessageText = message.text;
+        let unreads = 0;
+        let isUnread = false
+
+        if(sender.id !== user.id){
+          unreads++;
+          isUnread = true
+        }
+        newConvo.unreads = unreads;
+        newConvo.isMyLastMessageRead = false;
+        newConvo.isUnread = isUnread
         setConversations((prev) => [newConvo, ...prev]);
       }
 
@@ -115,18 +129,76 @@ const Home = ({ user, logout }) => {
           const messegesCopy = [...convo.messages]
           convoCopy.messages = [...messegesCopy, message]
           convoCopy.latestMessageText = message.text
+          if(recipientId == user.id){
+            convoCopy.unreads++
+            convoCopy.isUnread = true
+          }else{
+            convoCopy.isMyLastMessageRead = false;
+            convoCopy.isUnread = false
+          }
+          
           return convoCopy
         }else{
           return convo
         }
       }))
     },
-    [setConversations]
+    [setConversations, user]
   );
 
   const setActiveChat = (username) => {
     setActiveConversation(username);
   };
+
+  const patchMessages = async(body)=>{
+    const {data} = await axios.patch('/api/messages', body)
+    return data
+  }
+
+  const updateMessages = (data)=>{
+    socket.emit('update-messages', data)
+  }
+
+  const readMessages = async (body) =>{
+    try{
+      const data = await patchMessages({
+        messages: body.messages,
+        conversationId: body.conversationId
+      })
+      updateMessagesInConversations({
+        messages: data.messages,
+        readerId: body.readerId
+      })
+      updateMessages({
+        messages: data.messages,
+        readerId: body.readerId
+      })
+    }catch(error){
+      console.error(error)
+    }
+  }
+
+  const updateMessagesInConversations = useCallback((data)=>{
+    const { messages, readerId } = data;
+    setConversations(prev=>prev.map(convo=>{
+      if(convo.id===messages[0].conversationId){
+        const convoCopy = { ...convo }
+        const readMessages = convoCopy.messages.filter(message=>message.isRead)
+        const newMessages = [...readMessages, ...messages]
+        convoCopy.messages = newMessages
+        if(readerId === user.id){
+          convoCopy.unreads = 0
+          convoCopy.isUnread = false
+        }else{
+          convoCopy.isMyLastMessageRead = true
+        }
+        return convoCopy
+      }else{
+        return convo
+      }
+    }))
+      
+  },[setConversations, user])
 
   const addOnlineUser = useCallback((id) => {
     setConversations((prev) =>
@@ -163,6 +235,7 @@ const Home = ({ user, logout }) => {
     socket.on('add-online-user', addOnlineUser);
     socket.on('remove-offline-user', removeOfflineUser);
     socket.on('new-message', addMessageToConversation);
+    socket.on('update-messages', updateMessagesInConversations);
 
     return () => {
       // before the component is destroyed
@@ -170,8 +243,9 @@ const Home = ({ user, logout }) => {
       socket.off('add-online-user', addOnlineUser);
       socket.off('remove-offline-user', removeOfflineUser);
       socket.off('new-message', addMessageToConversation);
+      socket.off('update-messages', updateMessagesInConversations);
     };
-  }, [addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
+  }, [updateMessagesInConversations, addMessageToConversation, addOnlineUser, removeOfflineUser, socket]);
 
   useEffect(() => {
     // when fetching, prevent redirect
@@ -223,6 +297,7 @@ const Home = ({ user, logout }) => {
           conversations={conversations}
           user={user}
           postMessage={postMessage}
+          readMessages={readMessages}
         />
       </Grid>
     </>
