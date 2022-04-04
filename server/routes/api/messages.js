@@ -14,7 +14,12 @@ router.post("/", async (req, res, next) => {
 
     // if we already know conversation id, we can save time and just add it to message and return
     if (conversationId) {
-      const message = await Message.create({ senderId, text, conversationId,isRead: false });
+      const message = await Message.create({
+        senderId,
+        text,
+        conversationId,
+        isRead: false,
+      });
       return res.json({ message, sender });
     }
     // if we don't have conversation id, find a conversation to make sure it doesn't already exist
@@ -37,7 +42,7 @@ router.post("/", async (req, res, next) => {
       senderId,
       text,
       conversationId: conversation.id,
-      isRead: false
+      isRead: false,
     });
     res.json({ message, sender });
   } catch (error) {
@@ -45,41 +50,53 @@ router.post("/", async (req, res, next) => {
   }
 });
 
-router.patch("/",async (req, res, next)=>{
-  try{
-    // let newMessages = []
-    
-    const { messages, conversationId } = req.body
-    
+router.patch("/", async (req, res, next) => {
+  try {
+    const { messages, conversationId } = req.body;
+
     if (!req.user) {
       return res.sendStatus(401);
     }
-  
-    const conversation = await User.findOne({where: conversationId})
-    const isUserMessageSender = messages.some(message=>message.senderId === req.user.id) 
-    if(!conversation || isUserMessageSender){
-      return res.sendStatus(401);
+
+    const userId = req.user.id;
+
+    const user = await User.findOne({ where: conversationId });
+    const conversation = await Conversation.findOne({
+      where: {
+        id: conversationId,
+      },
+    });
+
+    const isUserConversationUser =
+      conversation.user1Id === userId || conversation.user2Id === userId;
+
+    if (!user || !isUserConversationUser) {
+      return res.sendStatus(403);
     }
 
-   await Message.update({isRead: true}, {
-    where: {
-      [Op.or]:{
-        id: [...messages.map(message=>message.id)]
+    await Message.update(
+      { isRead: true },
+      {
+        where: {
+          [Op.or]: {
+            id: [...messages.map((message) => message.id)],
+          },
+        },
       }
-   }} )
+    );
 
-  const newMessages = await Message.findAll({
-    where: {
-      [Op.or]:{
-        id: [...messages.map(message=>message.id)]
-      }
-    }
-  })
-    
-    res.json({messages: newMessages})
-  }catch (error) {
+    const newMessages = await Message.findAll({
+      where: {
+        [Op.or]: {
+          id: [...messages.map((message) => message.id)],
+        },
+      },
+    });
+
+    res.json({ messages: newMessages });
+  } catch (error) {
     next(error);
   }
-})
+});
 
 module.exports = router;
