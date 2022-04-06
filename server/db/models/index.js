@@ -7,8 +7,8 @@ const ConversationUser = require("./conversation-user");
 
 User.belongsToMany(Conversation, {
   through: ConversationUser,
-  foreignKey: "userId",
-  otherKey: "conversationId",
+  foreignKey: "conversationId",
+  otherKey: "userId",
 });
 Conversation.belongsToMany(User, {
   through: ConversationUser,

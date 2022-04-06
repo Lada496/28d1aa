@@ -9,8 +9,11 @@ const Conversation = db.define("conversation", {});
 Conversation.findConversation = async function (userIds) {
   const conversation = await Conversation.findOne({
     where: {
-      userId: {
-        [Op.in]: [...userIds],
+      user1Id: {
+        [Op.or]: [user1Id, user2Id],
+      },
+      user2Id: {
+        [Op.or]: [user1Id, user2Id],
       },
     },
   });
